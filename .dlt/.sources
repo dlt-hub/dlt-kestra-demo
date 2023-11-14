@@ -1,0 +1,24 @@
+engine_version: 1
+sources:
+  inbox:
+    is_dirty: false
+    last_commit_sha: 66086faf99e7c15efcdcd68ffbce5c6f52800b7e
+    last_commit_timestamp: '2023-10-24T13:40:55+02:00'
+    files:
+      inbox/__init__.py:
+        commit_sha: 66086faf99e7c15efcdcd68ffbce5c6f52800b7e
+        git_sha: 841c386fc342b2095d908a9b50316a54a7008d83
+        sha3_256: d865777ab56898e9baa613c9d0bc8b33606fa07b0baf6935789b631b959e29bb
+      inbox/README.md:
+        commit_sha: 66086faf99e7c15efcdcd68ffbce5c6f52800b7e
+        git_sha: 1dca753c51eb7810663a42012899010077553314
+        sha3_256: bfffa40c7e6ebe98cc5f747f740d1a6908330c02fce7853bd64297e5b2eb39ef
+      inbox/settings.py:
+        commit_sha: 66086faf99e7c15efcdcd68ffbce5c6f52800b7e
+        git_sha: 50dafdb740c64825a712c1d98e16f3714cc42656
+        sha3_256: ae3383417e948b469f01d2673f80f297cc6506753bba40263dcc5c0b24bc49ac
+      inbox/helpers.py:
+        commit_sha: 66086faf99e7c15efcdcd68ffbce5c6f52800b7e
+        git_sha: 109657d283e7f841750a90311fdb42185fc7ee21
+        sha3_256: 0245dd05b0db3d6921296d6b17f456f2a5b150e307189f671b6d0004336bc0af
+    dlt_version_constraint: <0.4,>=0.3.19

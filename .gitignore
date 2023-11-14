@@ -1,0 +1,12 @@
+# ignore secrets, virtual environments and typical python compilation artifacts
+secrets.toml
+inbox_pipeline.py
+myenv/
+# ignore basic python artifacts
+.env
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+# ignore duckdb
+*.duckdb
+*.wal
