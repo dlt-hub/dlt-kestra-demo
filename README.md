@@ -1,1 +1,1 @@
-# dlt-kestra-demo
+# From Inbox to Insights: AI-enhanced email analysis with dlt and Kestra

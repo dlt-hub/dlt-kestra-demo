@@ -2,6 +2,7 @@
 secrets.toml
 inbox_pipeline.py
 myenv/
+.DS_Store
 # ignore basic python artifacts
 .env
 **/__pycache__/
