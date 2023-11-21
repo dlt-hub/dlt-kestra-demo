@@ -247,3 +247,4 @@ triggers:
   - id: hourly
     type: io.kestra.core.models.triggers.types.Schedule
     cron: "@hourly"
+    lateMaximumDelay: "PT1H10M"
