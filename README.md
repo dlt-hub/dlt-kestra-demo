@@ -2,13 +2,13 @@
 
 ## Overview
 
-This is a demo project that shows the orchestration of a workflow in Kestra. It demonstrates the process of loading data from Gmail into BigQuery using dlt (Data Loading Tool) and includes AI analysis, specifically for summarization and sentiment asessment.
+This is a demo project that shows the orchestration of a workflow in Kestra. It demonstrates the process of loading data from Gmail into BigQuery using `dlt` (Data Loading Tool) and includes AI analysis, specifically for summarization and sentiment asessment.
 
 ![Overview of project demo](dlt-kestra-demo.png)
 
 The diagram above represents the Kestra flow of the project, encompassing the following steps:
 
-1. Data ingestion from Gmail to BigQuery utilizing dlt.
+1. Data ingestion from Gmail to BigQuery utilizing `dlt`.
 2. Data analysis for summarization and sentiment assessment using OpenAI, with the results stored in BigQuery.
 3. Sharing of the outcomes to Slack.
 
@@ -48,7 +48,19 @@ The diagram above represents the Kestra flow of the project, encompassing the fo
 
 1. **Create a Virtual Environment**: It's advised to create a virtual environment to maintain a clean workspace and prevent dependency conflicts, although this is not mandatory.
 
-2. **Create an .env File**: In your working repository, create an .env file and store your credentials in base64 format. Ensure that all secrets are prefixed with 'SECRET_'.
+2. **Create an .env File**: Within your repository, generate an ``.env`` file to securely store credentials in base64 format. Prefix each secret with 'SECRET_' in order for Kestra's [`secret()`](https://kestra.io/docs/developer-guide/variables/function/secret) function to work. For seamless integration, specifically name your Gmail and BigQuery credentials as follows to align with the `dlt` pipeline's automatic detection:
+
+    ```env
+    SECRET_GMAIL_HOST=someSecretValueInBase64
+    SECRET_GMAIL_EMAIL_ACCOUNT=someSecretValueInBase64
+    SECRET_GMAIL_PASSWORD=someSecretValueInBase64
+    SECRET_BIGQUERY_PROJECT_ID=someSecretValueInBase64
+    SECRET_BIGQUERY_PRIVATE_KEY=someSecretValueInBase64
+    SECRET_BIGQUERY_CLIENT_EMAIL=someSecretValueInBase64
+    SECRET_OPENAI_API=someSecretValueInBase64
+    SECRET_SLACK_WEBHOOK_URL=someSecretValueInBase64
+
+    ```
 
    :::note
    The base64 format is required because Kestra mandates it.
@@ -59,7 +71,7 @@ The diagram above represents the Kestra flow of the project, encompassing the fo
 4. **Ensure Docker is Running**: Verify that Docker is active. You can start Kestra with a single command using Docker:
    ```bash
    docker run --pull=always --rm -it -p 8080:8080 --user=root -v /var/run/docker.sock:/var/run/docker.sock -v /tmp:/tmp kestra/kestra:develop-full server local
-5. **Configure Docker Compose File**: Modify your Docker Compose file to include the .env file:
+5. **Configure Docker Compose File**: Modify your Docker Compose file to include the ``.env`` file:
 
     ```yaml
     kestra:
@@ -141,7 +153,7 @@ messages = messages(include_body=True).with_name(table_name)
 load_info = pipeline.run(messages)
 ```
 
-Additional parameters, such as specifying the email folder or a start date, can be passed to the `inbox_source()` function. For more detailed information on these parameters and other aspects of the dlt library, refer to `dlt`'s official [documentation](https://dlthub.com/docs/dlt-ecosystem/verified-sources/inbox).
+Additional parameters, such as specifying the email folder or a start date, can be passed to the `inbox_source()` function. For more detailed information on these parameters and other aspects of the `dlt` library, refer to `dlt`'s official [documentation](https://dlthub.com/docs/dlt-ecosystem/verified-sources/inbox).
 
 ## Email Summary and Sentiment Analysis
 
@@ -159,7 +171,7 @@ The rest of the script automates the processing of new email data and updates th
 To execute a flow in Kestra after setting up the YAML file, simply click on `New execution` located in the bottom right corner of the Kestra interface. This action initiates the flow. You can then monitor its progress and review outputs directly through the Kestra UI.
 
 ## Contact / Support
-For guidance on running custom pipelines with dlt or orchestrating flows in Kestra, consider joining their Slack communities:
+For guidance on running custom pipelines with `dlt` or orchestrating flows in Kestra, consider joining their Slack communities:
 
 - [dltHub](https://dlthub-community.slack.com)
 - [Kestra](https://kestra-io.slack.com)
