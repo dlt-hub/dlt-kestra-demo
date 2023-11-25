@@ -1,0 +1,99 @@
+id: dlt-kestra-demo
+namespace: demo
+
+tasks:
+  - id: dlt_pipeline
+    type: io.kestra.plugin.scripts.python.Script
+    docker:
+      image: python:3.11
+    beforeCommands:
+      - pip install kestra
+      - pip install pendulum
+      - pip install "dlt[bigquery]"
+      - pip install google-cloud-bigquery
+      - pip install google-cloud-bigquery-storage
+      - dlt --non-interactive init inbox bigquery
+    env:
+      CREDENTIALS__PROJECT_ID: "{{ secret('BIGQUERY_PROJECT_ID') }}"
+      CREDENTIALS__PRIVATE_KEY: "{{ secret('BIGQUERY_PRIVATE_KEY') }}"
+      CREDENTIALS__CLIENT_EMAIL: "{{ secret('BIGQUERY_CLIENT_EMAIL') }}"
+      SOURCES__HOST: "{{ secret('GMAIL_HOST') }}"
+      SOURCES__EMAIL_ACCOUNT: "{{ secret('GMAIL_EMAIL_ACCOUNT') }}"
+      SOURCES__PASSWORD: "{{ secret('GMAIL_PASSWORD') }}"
+    warningOnStdErr: false
+    script: |
+
+      import pendulum
+      import dlt
+      from inbox import inbox_source
+
+      # Run dlt pipeline to load email data from gmail to BigQuery
+      pipeline = dlt.pipeline(
+          pipeline_name="standard_inbox",
+          destination='bigquery',
+          dataset_name="messages_data",
+          full_refresh=False,
+      )
+
+      # Set table name
+      table_name = "my_inbox"
+      # Get messages resource from the source
+      messages = inbox_source(start_date = pendulum.datetime(2023, 11, 15)).messages
+      # Configure the messages resource to get bodies of the emails
+      messages = messages(include_body=True).with_name(table_name)
+      # Load data to "my_inbox" table
+      load_info = pipeline.run(messages)
+
+      # Check if new email data was loaded
+      if len(load_info.loads_ids) == 0:
+          load_status = {'load_status': -1} #
+      else:
+          load_id = load_info.loads_ids[0]
+          load_status = {
+              'load_status': 0,  
+              'load_id': load_id 
+          }
+
+      import json
+      from kestra import Kestra
+
+      Kestra.outputs(load_status)
+
+      with open('{{outputDir}}/myoutput.json', 'w') as f:
+        json.dump(load_status, f)
+
+  - id: check_load_status
+    type: io.kestra.core.tasks.flows.If
+    condition: "{{ outputs.dlt_pipeline.vars.load_status == -1}}"
+    then:
+      - id: No_new_emails
+        type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+        url: "{{ secret('SLACK_WEBHOOK_URL') }}"
+        payload: |
+          {
+            "channel": "#dlt-kestra-demo",
+            "text": "No new emails in the last hour so far."
+          }    
+    else: 
+        - id: get_new_emails
+          type: io.kestra.plugin.gcp.bigquery.Query
+          serviceAccount: "{{ secret('GCP_SA') }}"
+          projectId: "{{ secret('BIGQUERY_PROJECT_ID') }}"
+          fetch: true
+          sql: |
+            SELECT *
+            FROM messages_data.my_inbox
+            WHERE _dlt_load_id = '{{outputs.dlt_pipeline.vars.load_id}}'
+
+        - id: sequential
+          type: io.kestra.core.tasks.flows.EachSequential
+          value: ["{{outputs.get_new_emails.rows}}"]
+          tasks:
+            - id: subflow
+              type: io.kestra.core.tasks.flows.Flow
+              flowId: process_email
+              namespace: blueprint
+              wait: true
+              transmitFailed: true
+              inputs:
+                  data: "{{ taskrun.value }}"

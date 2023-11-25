@@ -1,0 +1,76 @@
+id: process_email
+namespace: blueprint
+
+inputs:
+  - name: data
+    type: JSON
+
+tasks:
+  - id: get_summary
+    type: io.kestra.plugin.openai.ChatCompletion
+    apiKey: "{{ secret('OPENAI_API') }}"
+    model: gpt-3.5-turbo
+    prompt: "Summarize the email content in one sentence with less than 30 words: {{inputs.data[0]['body']}}"
+    messages: [{"role": "system", "content": "You are a tool that summarizes emails."}]
+
+  - id: get_sentiment
+    type: io.kestra.plugin.openai.ChatCompletion
+    apiKey: "{{ secret('OPENAI_API') }}"
+    model: gpt-3.5-turbo
+    prompt: "Analyze the sentiment of the following email and reply only with one word: {{inputs.data[0]['body']}}"
+    messages: [{"role": "system", "content": "You are a tool that analyzes email sentiment."}]
+
+  - id: parallel_tasks
+    type: io.kestra.core.tasks.flows.Parallel
+    tasks:
+      - id: dlt_load_result
+        type: io.kestra.plugin.scripts.python.Script
+        docker:
+          image: python:3.11
+        beforeCommands: 
+          - pip install "dlt[bigquery]"
+          - dlt --non-interactive init inbox bigquery
+        warningOnStdErr: false
+        env:
+          CREDENTIALS__PROJECT_ID: "{{ secret('BIGQUERY_PROJECT_ID') }}"
+          CREDENTIALS__PRIVATE_KEY: "{{ secret('BIGQUERY_PRIVATE_KEY') }}"
+          CREDENTIALS__CLIENT_EMAIL: "{{ secret('BIGQUERY_CLIENT_EMAIL') }}"
+          SOURCES__HOST: "{{ secret('GMAIL_HOST') }}"
+          SOURCES__EMAIL_ACCOUNT: "{{ secret('GMAIL_EMAIL_ACCOUNT') }}"
+          SOURCES__PASSWORD: "{{ secret('GMAIL_PASSWORD') }}"
+        script: |
+        
+          import dlt
+
+          data = [{
+                  "email_id": '{{ inputs.data[0]['message_uid']}}',
+                  "summary": '{{outputs.get_summary.choices[0].message.content}}',
+                  "sentiment": '{{outputs.get_sentiment.choices[0].message.content}}',
+                  "date": '{{ inputs.data[0]['date']}}'
+                  }]
+
+          # Create a dlt pipeline for BigQuery
+          pipeline = dlt.pipeline(
+              pipeline_name='json_to_bigquery',
+              destination='bigquery',
+              dataset_name='messages_data',
+          )
+
+          # Load the data into BigQuery
+          load_info = pipeline.run(data, table_name="test")
+
+          print(load_info)
+
+      - id: send_to_slack
+        type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+        url: "{{ secret('SLACK_WEBHOOK_URL') }}"
+        retry:
+          type: constant
+          interval: PT0.25S
+          maxAttempt: 2
+          warningOnRetry: true
+        payload: |
+          {
+            "channel": "#dlt-kestra-demo",
+            "text": "*Subject*: {{inputs.data[0]['subject']}}\n*Sender:* {{inputs.data[0]['from']}}\n*Summary:* {{outputs.get_summary.choices[0].message.content}}\n*Sentiment:* {{outputs.get_sentiment.choices[0].message.content}}\n*Date:* {{inputs.data[0]['date']}}\n"
+          }
