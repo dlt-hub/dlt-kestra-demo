@@ -201,9 +201,6 @@ The `process_emails` subflow uses OpenAI to summarize and analyze the sentiment 
 
     - **`send_to_slack`**: Utilizes Kestra's Slack plugin to send a message with details like the subject, sender, summary, sentiment, and date of each processed email.
 
-
-5. **The `Triggers` Part**: Includes a trigger set to run every hour. To address the default backfill behavior, we use the `lateMaximumDelay` property set to 1 hour and 10 minutes. This configuration ensures that tasks missed during system downtime will not be executed if the delay exceeds this duration, preventing unnecessary catch-up runs.
-
 ## Execute your flows
 To execute a flow in Kestra after setting up the YAML file, simply click on 'Execute' in the top right corner of the Kestra interface. This action initiates the flow. You can then monitor its progress and review outputs directly through the Kestra UI.
 
