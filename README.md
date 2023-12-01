@@ -19,31 +19,24 @@ The diagram above represents the workflow overview of the automation process in 
     - Gmail account email
     - App password
 
-    :::note
-    For the app pasword, refer to Gmail's [official guidelines](https://support.google.com/mail/answer/185833?hl=en#:~:text=An%20app%20password%20is%20a,2%2DStep%20Verification%20turned%20on).
-    :::
+    >For the app pasword, refer to Gmail's [official guidelines](https://support.google.com/mail/answer/185833?hl=en#:~:text=An%20app%20password%20is%20a,2%2DStep%20Verification%20turned%20on).
+    
 2. BigQuery credentials
     - Project ID
     - Private key
     - Client email
     
-    :::note
-    Learn more about obtaining BigQuery credentials in `dlt`'s [documentation](https://dlthub.com/docs/dlt-ecosystem/destinations/bigquery).
-    :::
+    >Learn more about obtaining BigQuery credentials in `dlt`'s [documentation](https://dlthub.com/docs/dlt-ecosystem/destinations/bigquery).
 
 3. OpenAI API key
     
-    :::note
-    If you're new to [OpenAi](https://platform.openai.com/), they offer $5 in free credits usable during your first 3 months.
-    :::
+    >If you're new to [OpenAi](https://platform.openai.com/), they offer $5 in free credits usable during your first 3 months.
 
 4. Slack credentials
     - Webhook URL
 
-    :::note
-    Follow Slack's [guidelines](https://api.slack.com/messaging/webhooks) to obtain your webhook URL.
-    :::
-
+    >Follow Slack's [guidelines](https://api.slack.com/messaging/webhooks) to obtain your webhook URL.
+    
 ## Setup Guide
 
 1. **Create a Virtual Environment**: It's advised to create a virtual environment to maintain a clean workspace and prevent dependency conflicts, although this is not mandatory.
@@ -62,10 +55,8 @@ The diagram above represents the workflow overview of the automation process in 
 
     ```
 
-   :::note
-   The base64 format is required because Kestra mandates it.
-   :::
-
+   >The base64 format is required because Kestra mandates it.
+  
     Find out more about managing secrets in Kestra [here](https://kestra.io/docs/developer-guide/secrets).
 
 3. **Download Docker Desktop**: As recommended by Kestra, download and install Docker Desktop.
@@ -125,9 +116,7 @@ The `dlt-kestra-demo` flow extracts email data from Gmail and loads it into BigQ
     - **`warningOnStdEr`**: Set to `false` to ensure that warnings are not treated as critical errors.
     - **The `env` Block**: Defines environment variables, providing essential credentials.
 
-        :::note
-        The variable names for Gmail and BigQuery credentials match the `dlt` pipeline's requirements, allowing automatic detection and use of these credentials.
-        :::
+        >The variable names for Gmail and BigQuery credentials match the `dlt` pipeline's requirements, allowing automatic detection and use of these credentials.
 
     - **The `script` Section**: Contains a Python script where we define our `dlt` pipeline and run it: 
 
@@ -152,9 +141,7 @@ The `dlt-kestra-demo` flow extracts email data from Gmail and loads it into BigQ
         
         Using `load_info`, we then define an output with a load status, upon which the next conditional task depends.
 
-        :::note
-        Additional parameters, such as the email folder or a start date, can be passed to the `inbox_source()` function. For more detailed information on these parameters and other aspects of the `dlt` library, refer to `dlt`'s official [documentation](https://dlthub.com/docs/dlt-ecosystem/verified-sources/inbox).
-        :::
+        >Additional parameters, such as the email folder or a start date, can be passed to the `inbox_source()` function. For more detailed information on these parameters and other aspects of the `dlt` library, refer to `dlt`'s official [documentation](https://dlthub.com/docs/dlt-ecosystem/verified-sources/inbox).
 
 2. **`check_load_status`**: Employs a conditional check to determine if new emails have been loaded. If no new emails are found, it sends a notification to Slack via Kestra's Slack plugin, indicating the absence of new emails. Conversely, if new emails are present, it performs two subsequent tasks:
 
@@ -194,9 +181,7 @@ The `process_emails` subflow uses OpenAI to summarize and analyze the sentiment 
         load_info = pipeline.run(data, table_name="processed_emails")    
         ```
 
-        :::note
-        `dlt` will create a new table in Bigquery if the table doesn't exist yet.
-        :::
+        >`dlt` will create a new table in Bigquery if the table doesn't exist yet.
 
 
     - **`send_to_slack`**: Utilizes Kestra's Slack plugin to send a message with details like the subject, sender, summary, sentiment, and date of each processed email.
